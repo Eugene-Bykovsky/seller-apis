@@ -130,15 +130,38 @@ def create_prices(watch_remnants, offer_ids):
     return prices
 
 
+# Преобразует строку с нечисловыми символами в числовую строку. Строка с
+# ценой, которая может содержать нечисловые символы, пробелы или разделители
+# разрядов.
+
 def price_conversion(price: str) -> str:
-    """Преобразовать цену. Пример: 5'990.00 руб. -> 5990"""
+    """Преобразует строку с нечисловыми символами в числовую строку.
+
+    Args:
+        price (str): Строка с ценой, которая может содержать нечисловые
+        символы, пробелы или разделители разрядов.
+
+    Returns:
+        str: Строка, содержащая только числовые символы.
+
+    Examples:
+        Корректное использование:
+        >>> price_conversion("5'990.00 руб.")
+        '5990'
+
+        Некорректное использование:
+        >>> price_conversion(None)
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'NoneType' object has no attribute 'split'
+    """
     return re.sub("[^0-9]", "", price.split(".")[0])
 
 
 def divide(lst: list, n: int):
     """Разделить список lst на части по n элементов"""
     for i in range(0, len(lst), n):
-        yield lst[i : i + n]
+        yield lst[i: i + n]
 
 
 async def upload_prices(watch_remnants, client_id, seller_token):
