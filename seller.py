@@ -12,7 +12,27 @@ logger = logging.getLogger(__file__)
 
 
 def get_product_list(last_id, client_id, seller_token):
-    """Получить список товаров магазина озон"""
+    """Получить список товаров магазина Ozon.
+
+    Args:
+        last_id (str): Последний идентификатор товара.
+        client_id (str): Идентификатор клиента.
+        seller_token (str): Токен для доступа к API продавца.
+
+    Returns:
+        dict: Словарь с результатами запроса.
+
+    Examples:
+        Корректное использование:
+        >>> get_product_list("3", "12345", "asda23sad")
+        {'items': [...], 'total': 100}
+
+        Некорректное использование:
+        >>> get_product_list("3", "12345", "invalid_seller_token")
+        Traceback (most recent call last):
+            ...
+        requests.exceptions.HTTPError: 401 Client Error: Unauthorized
+    """
     url = "https://api-seller.ozon.ru/v2/product/list"
     headers = {
         "Client-Id": client_id,
@@ -32,7 +52,26 @@ def get_product_list(last_id, client_id, seller_token):
 
 
 def get_offer_ids(client_id, seller_token):
-    """Получить артикулы товаров магазина озон"""
+    """Получить артикулы товаров магазина Ozon.
+
+    Args:
+        client_id (str): Идентификатор клиента.
+        seller_token (str): Токен для доступа к API продавца.
+
+    Returns:
+        list: Список артикулов товаров.
+
+    Examples:
+        Корректное использование:
+        >>> get_offer_ids("12345", "valid_seller_token")
+        ['offer1', 'offer2', ...]
+
+        Некорректное использование:
+        >>> get_offer_ids("12345", "invalid_seller_token")
+        Traceback (most recent call last):
+            ...
+        requests.exceptions.HTTPError: 401 Client Error: Unauthorized
+    """
     last_id = ""
     product_list = []
     while True:
@@ -49,7 +88,28 @@ def get_offer_ids(client_id, seller_token):
 
 
 def update_price(prices: list, client_id, seller_token):
-    """Обновить цены товаров"""
+    """Обновить цены товаров.
+
+    Args:
+        prices (list): Список цен, которые нужно обновить.
+        client_id (str): Идентификатор клиента.
+        seller_token (ster): Токен для доступа к API продавца.
+
+    Returns:
+        dict: Результат запроса обновления цен.
+
+    Examples:
+        Корректное использование:
+        >>> update_price([{'offer_id': '123', 'price': '5990'}], "12345",
+                        "valid_seller_token")
+        {'status': 'success'}
+
+        Некорректное использование:
+        >>> update_price([], "12345", "invalid_seller_token")
+        Traceback (most recent call last):
+            ...
+        requests.exceptions.HTTPError: 401 Client Error: Unauthorized
+    """
     url = "https://api-seller.ozon.ru/v1/product/import/prices"
     headers = {
         "Client-Id": client_id,
@@ -62,7 +122,28 @@ def update_price(prices: list, client_id, seller_token):
 
 
 def update_stocks(stocks: list, client_id, seller_token):
-    """Обновить остатки"""
+    """Обновить остатки товаров.
+
+    Args:
+        stocks (list): Список остатков для обновления.
+        client_id: Идентификатор клиента.
+        seller_token: Токен для доступа к API продавца.
+
+    Returns:
+        dict: Результат запроса обновления остатков.
+
+    Examples:
+        Корректное использование:
+        >>> update_stocks([{'offer_id': '123', 'stock': 10}], "12345",
+                         "valid_seller_token")
+        {'status': 'success'}
+
+        Некорректное использование:
+        >>> update_stocks([], "12345", "invalid_seller_token")
+        Traceback (most recent call last):
+            ...
+        requests.exceptions.HTTPError: 401 Client Error: Unauthorized
+    """
     url = "https://api-seller.ozon.ru/v1/product/import/stocks"
     headers = {
         "Client-Id": client_id,
@@ -75,7 +156,22 @@ def update_stocks(stocks: list, client_id, seller_token):
 
 
 def download_stock():
-    """Скачать файл ostatki с сайта casio"""
+    """Скачать файл остатков с сайта Casio и преобразовать в список.
+
+    Returns:
+        list: Список остатков товаров.
+
+    Examples:
+        Корректное использование:
+        >>> download_stock()
+        [{'Код': '123', 'Количество': '10', 'Цена': '5990'}, ...]
+
+        Некорректное использование:
+        >>> download_stock()
+        Traceback (most recent call last):
+            ...
+        requests.exceptions.HTTPError: 404 Client Error: Not Found
+    """
     # Скачать остатки с сайта
     casio_url = "https://timeworld.ru/upload/files/ostatki.zip"
     session = requests.Session()
@@ -96,6 +192,26 @@ def download_stock():
 
 
 def create_stocks(watch_remnants, offer_ids):
+    """Создать список остатков на основе загруженных данных.
+
+    Args:
+        watch_remnants (list): Список остатков, загруженных из файла.
+        offer_ids (list): Список артикулов, загруженных в Ozon.
+
+    Returns:
+        list: Список остатков для обновления.
+
+    Examples:
+        Корректное использование:
+        >>> create_stocks(watch_remnants, ['offer1', 'offer2'])
+        [{'offer_id': 'offer1', 'stock': 10}, ...]
+
+        Некорректное использование:
+        >>> create_stocks(None, ['offer1', 'offer2'])
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'NoneType' object has no attribute 'get'
+    """
     # Уберем то, что не загружено в seller
     stocks = []
     for watch in watch_remnants:
@@ -116,6 +232,26 @@ def create_stocks(watch_remnants, offer_ids):
 
 
 def create_prices(watch_remnants, offer_ids):
+    """Создать список цен на основе загруженных данных и артикулов.
+
+    Args:
+        watch_remnants (list): Список остатков, загруженных из файла.
+        offer_ids (list): Список артикулов, загруженных в Ozon.
+
+    Returns:
+        list: Список цен для обновления
+
+    Examples:
+        Корректное использование:
+        >>> create_prices(watch_remnants, ['offer1', 'offer2'])
+        [{'offer_id': 'offer1', 'price': '5990'}, ...]
+
+        Некорректное использование:
+        >>> create_prices(None, ['offer1', 'offer2'])
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'NoneType' object has no attribute 'get'
+    """
     prices = []
     for watch in watch_remnants:
         if str(watch.get("Код")) in offer_ids:
@@ -159,12 +295,53 @@ def price_conversion(price: str) -> str:
 
 
 def divide(lst: list, n: int):
-    """Разделить список lst на части по n элементов"""
+    """Разделить список lst на части по n элементов.
+
+    Args:
+        lst (list): Исходный список.
+        n (int): Размер каждой части.
+
+    Yields:
+        list: Часть исходного списка.
+
+
+    Examples:
+        Корректное использование:
+        >>> list(divide([1, 2, 3, 4, 5], 2))
+        [[1, 2], [3, 4], [5]]
+
+        Некорректное использование:
+        >>> list(divide("12345", 2))
+        Traceback (most recent call last):
+            ...
+        TypeError: object of type 'str' has no len()
+    """
     for i in range(0, len(lst), n):
         yield lst[i: i + n]
 
 
 async def upload_prices(watch_remnants, client_id, seller_token):
+    """Загрузить цены товаров в Ozon.
+
+    Args:
+        watch_remnants: Список остатков, загруженных из файла.
+        client_id: Идентификатор клиента.
+        seller_token: Токен для доступа к API продавца.
+
+    Returns:
+        list: Список всех обновленных цен.
+
+    Examples:
+        Корректное использование:
+        >>> await upload_prices(watch_remnants, "12345", "valid_seller_token")
+        [{'offer_id': 'offer1', 'price': '5990'}, ...]
+
+        Некорректное использование:
+        >>> await upload_prices(None, "12345", "invalid_seller_token")
+        Traceback (most recent call last):
+            ...
+        TypeError: 'NoneType' object has no attribute 'get'
+    """
     offer_ids = get_offer_ids(client_id, seller_token)
     prices = create_prices(watch_remnants, offer_ids)
     for some_price in list(divide(prices, 1000)):
@@ -173,6 +350,29 @@ async def upload_prices(watch_remnants, client_id, seller_token):
 
 
 async def upload_stocks(watch_remnants, client_id, seller_token):
+    """Загрузить остатки товаров в Ozon.
+
+    Args:
+        watch_remnants: Список остатков, загруженных из файла.
+        client_id: Идентификатор клиента.
+        seller_token: Токен для доступа к API продавца.
+
+    Returns:
+        tuple: Кортеж с двумя списками:
+            - Список товаров с ненулевыми остатками.
+            - Полный список остатков товаров.
+
+    Examples:
+        Корректное использование:
+        >>> await upload_stocks(watch_remnants, "12345", "valid_seller_token")
+        ([{'offer_id': 'offer1', 'stock': 10}, ...], [{'offer_id': 'offer1', 'stock': 10}, ...])
+
+        Некорректное использование:
+        >>> await upload_stocks(None, "12345", "invalid_seller_token")
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'NoneType' object has no attribute 'get'
+    """
     offer_ids = get_offer_ids(client_id, seller_token)
     stocks = create_stocks(watch_remnants, offer_ids)
     for some_stock in list(divide(stocks, 100)):
@@ -182,6 +382,18 @@ async def upload_stocks(watch_remnants, client_id, seller_token):
 
 
 def main():
+    """Основная функция для загрузки остатков и цен товаров в Ozon.
+
+    Examples:
+        Корректное использование:
+        >>> main()
+
+        Некорректное использование:
+        >>> main()  # Если отсутствуют переменная окружения
+        Traceback (most recent call last):
+            ...
+        KeyError: 'CLIENT_ID'
+    """
     env = Env()
     seller_token = env.str("SELLER_TOKEN")
     client_id = env.str("CLIENT_ID")
